@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/features/medications/presentation/add_medication_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../logic/dashboard_controller.dart';
 
@@ -58,6 +59,15 @@ class DashboardScreen extends ConsumerWidget {
         error: (err, stack) => Center(
           child: Text('Error: $err'),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddMedicationScreen()),
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }
