@@ -30,4 +30,40 @@ class MedicationService {
       throw response.error!;
     }
   }
+
+  Future<void> decrementStock(String medicationId, int amount) async {
+    final med = await _client
+        .from('medications')
+        .select()
+        .eq('id', medicationId)
+        .single();
+    final currentStock = med['stock'] as int? ?? 0;
+    final newStock = (currentStock - amount).clamp(0, double.infinity).toInt();
+
+    await _client
+        .from('medications')
+        .update({'stock': newStock}).eq('id', medicationId);
+
+    // Trigger refill alert if below threshold
+    final threshold = med['refill_threshold'] ?? 0;
+    if (newStock <= threshold) {
+      // Here we can later hook into push notification logic
+      print(
+          '⚠️ Refill alert: ${med['medication_name']} is low ($newStock left)');
+    }
+  }
+
+  Future<void> refillStock(String medicationId, int addedAmount) async {
+    final med = await _client
+        .from('medications')
+        .select()
+        .eq('id', medicationId)
+        .single();
+    final currentStock = med['stock'] as int? ?? 0;
+    final newStock = currentStock + addedAmount;
+
+    await _client
+        .from('medications')
+        .update({'stock': newStock}).eq('id', medicationId);
+  }
 }

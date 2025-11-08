@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/features/doses/presentation/dose_list_screen.dart';
 import 'package:medication_reminder/features/medications/presentation/add_medication_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../logic/dashboard_controller.dart';
@@ -40,6 +41,14 @@ class DashboardScreen extends ConsumerWidget {
                 elevation: 3,
                 margin: const EdgeInsets.symmetric(vertical: 8),
                 child: ListTile(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => DoseListScreen(medicationId: med['id']),
+                      ),
+                    );
+                  },
                   leading: CircleAvatar(
                     backgroundColor: Colors.teal.shade200,
                     child: const Icon(Icons.medication),
