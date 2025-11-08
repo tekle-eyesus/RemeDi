@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:medication_reminder/features/auth/logic/auth_controller.dart';
 import 'package:medication_reminder/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:medication_reminder/features/home/presentation/home_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'features/auth/presentation/auth_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +26,7 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authService = ref.watch(authServiceProvider);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Medication Reminder',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
@@ -38,7 +40,7 @@ class MyApp extends ConsumerWidget {
                 body: Center(child: CircularProgressIndicator()));
           }
           final isLoggedIn = snapshot.data ?? false;
-          return isLoggedIn ? const DashboardScreen() : const AuthScreen();
+          return isLoggedIn ? const HomeScreen() : const AuthScreen();
         },
       ),
     );

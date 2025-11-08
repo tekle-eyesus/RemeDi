@@ -1,35 +1,47 @@
 class Dose {
-  final String id;
+  final String? id;
   final String medicationId;
   final DateTime scheduledAt;
-  final int quantity;
-  final String? notes;
   final DateTime? takenAt;
-  final String status;
+  final String status; // 'scheduled', 'taken', 'missed'
+  final int quantity;
+  final String? note;
 
   Dose({
-    required this.id,
+    this.id,
     required this.medicationId,
     required this.scheduledAt,
-    required this.quantity,
     this.takenAt,
-    this.notes,
-    required this.status,
+    this.status = 'scheduled',
+    this.quantity = 1,
+    this.note,
   });
 
-  factory Dose.fromMap(Map<String, dynamic> map) => Dose(
-      id: map['id'] as String,
-      medicationId: map['medication_id'] as String,
-      scheduledAt: DateTime.parse(map['scheduled_at'] as String),
-      takenAt: map['taken_at'] != null ? DateTime.parse(map['taken_at']) : null,
-      quantity: map['quantity'],
-      status: map['status'] ?? 'upcoming',
-      notes: map['notes'] ?? "None");
+  factory Dose.fromJson(Map<String, dynamic> json) {
+    return Dose(
+      id: json['id'] as String,
+      medicationId: json['medication_id'] as String,
+      scheduledAt: DateTime.parse(json['scheduled_at']),
+      takenAt:
+          json['taken_at'] != null ? DateTime.parse(json['taken_at']) : null,
+      status: json['status'] ?? 'scheduled',
+      quantity: json['quantity'] ?? 1,
+      note: json['note'],
+    );
+  }
 
-  Map<String, dynamic> toMap() => {
-        'medication_id': medicationId,
-        'scheduled_at': scheduledAt.toIso8601String(),
-        'taken_at': takenAt?.toIso8601String(),
-        'status': status,
-      };
+  Map<String, dynamic> toJson() {
+    final data = {
+      'medication_id': medicationId,
+      'scheduled_at': scheduledAt.toIso8601String(),
+      'status': status,
+      'quantity': quantity,
+      'note': note,
+    };
+
+    if (id != null && id!.isNotEmpty) {
+      data['id'] = id;
+    }
+    return data;
+  }
 }
