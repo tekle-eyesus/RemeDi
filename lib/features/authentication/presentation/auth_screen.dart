@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../logic/auth_controller.dart';
+import '../domain/auth_controller.dart';
 import 'widgets/custom_snackbar.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
