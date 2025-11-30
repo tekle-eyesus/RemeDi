@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
+import 'package:medication_reminder/features/dashboard/presentation/screens/dashboard_screen.dart';
 
 import 'features/authentication/presentation/screens/login_screen.dart';
 import 'features/authentication/presentation/screens/signup_screen.dart';
-// import 'features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'features/authentication/presentation/providers/auth_provider.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -26,13 +26,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
-          path: '/',
-          // builder: (context, state) => const DashboardScreen(),
-          builder: (context, state) => const Scaffold(
-                body: Center(
-                  child: Text("dashboard screen!!"),
-                ),
-              )),
+        path: '/',
+        builder: (context, state) => const DashboardScreen(),
+      ),
     ],
     redirect: (context, state) {
       final isLoggedIn = authState.user?.isNotEmpty ?? false;

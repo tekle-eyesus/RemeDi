@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/shared/styles/theme.dart';
 
 import 'core/constants/app_constants.dart';
 import 'app.dart';
@@ -24,15 +25,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: AppConstants.appName,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppConstants.primaryColor,
-          background: AppConstants.backgroundColor,
-          surface: AppConstants.surfaceColor,
-        ),
-        useMaterial3: true,
-      ),
-      home: const App(),
+      theme: AppTheme.lightTheme,
+      home: const ProviderScope(child: App()),
     );
   }
 }
