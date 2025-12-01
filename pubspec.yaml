@@ -67,6 +67,13 @@ dependencies:
   table_calendar: ^3.0.9
   syncfusion_flutter_calendar: ^29.1.38
   timezone: ^0.10.0
+  flutter_colorpicker: ^1.1.0
+  cached_network_image: ^3.4.1
+  intl_phone_field: ^3.2.0
+  flutter_typeahead: ^5.2.0
+  syncfusion_flutter_datepicker: ^29.1.38
+  path_provider: ^2.1.5
+  formz: ^0.8.0
 
 dev_dependencies:
   flutter_test:

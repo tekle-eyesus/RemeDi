@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
 import 'package:medication_reminder/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:medication_reminder/features/medications/presentation/screens/add_edit_medication_screen.dart';
+import 'package:medication_reminder/features/medications/presentation/screens/medication_list_screen.dart';
 
 import 'features/authentication/presentation/screens/login_screen.dart';
 import 'features/authentication/presentation/screens/signup_screen.dart';
@@ -28,6 +30,21 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/medications',
+        builder: (context, state) => const MedicationListScreen(),
+      ),
+      GoRoute(
+        path: '/medications/add',
+        builder: (context, state) => const AddEditMedicationScreen(),
+      ),
+      GoRoute(
+        path: '/medications/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return AddEditMedicationScreen(medicationId: id);
+        },
       ),
     ],
     redirect: (context, state) {

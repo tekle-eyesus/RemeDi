@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:medication_reminder/features/dashboard/presentation/widgets/low_stock_warning.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
@@ -168,11 +169,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           ),
         ),
       ),
-
-      // Floating Action Button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Navigate to add medication
+          // context.go('/medications/add');
+          GoRouter.of(context).push('/medications/add');
         },
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
