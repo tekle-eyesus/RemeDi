@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
 import 'package:medication_reminder/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:medication_reminder/features/history/presentation/screens/history_calendar_screen.dart';
 import 'package:medication_reminder/features/medications/presentation/screens/add_edit_medication_screen.dart';
 import 'package:medication_reminder/features/medications/presentation/screens/medication_list_screen.dart';
 
@@ -45,6 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = state.pathParameters['id']!;
           return AddEditMedicationScreen(medicationId: id);
         },
+      ),
+      GoRoute(
+        path: '/history',
+        builder: (context, state) => const HistoryCalendarScreen(),
       ),
     ],
     redirect: (context, state) {
