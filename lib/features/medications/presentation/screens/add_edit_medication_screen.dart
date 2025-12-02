@@ -120,38 +120,12 @@ class _AddEditMedicationScreenState
           imageUrl: _existingMedication!.imageUrl,
           isActive: _existingMedication!.isActive,
         );
-        // _formState = MedicationFormState(
-        //   name: MedicationName.dirty(_existingMedication!.name),
-        //   dosageValue:
-        //       DosageValue.dirty(_existingMedication!.dosageValue.toString()),
-        //   dosageUnit: DosageUnit.dirty(_existingMedication!.dosageUnit),
-        //   form: FormzInput.dirty(_existingMedication!.form),
-        //   frequencyType: _existingMedication!.frequency.type,
-        //   frequencyValue: _existingMedication!.frequency.value,
-        //   timesOfDay: _existingMedication!.timesOfDay,
-        //   startDate: _existingMedication!.startDate,
-        //   endDate: _existingMedication!.endDate,
-        //   initialStock:
-        //       InitialStock.dirty(_existingMedication!.currentStock.toString()),
-        //   refillThreshold: RefillThreshold.dirty(
-        //       _existingMedication!.refillThreshold.toString()),
-        //   colorTag: _existingMedication!.colorTag,
-        //   notes: _existingMedication!.notes,
-        //   imageUrl: _existingMedication!.imageUrl,
-        //   isActive: _existingMedication!.isActive,
-        // );
       }
     } else {
       _formState = MedicationFormState();
       _initialStockController.text = '30';
       _refillThresholdController.text = '5';
     }
-  }
-
-  void _updateFormState(Function(MedicationFormState) update) {
-    setState(() {
-      _formState = update(_formState);
-    });
   }
 
   Future<void> _pickImage() async {
@@ -292,18 +266,75 @@ class _AddEditMedicationScreenState
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    final nameError = _formState.name.validate();
+    final dosageError = _formState.dosageValue.validate();
+    final stockError = _formState.initialStock.validate();
+    final thresholdError = _formState.refillThreshold.validate();
 
-      final user = ref.read(authNotifierProvider).user;
-      if (user == null || user.isEmpty) {
+    _updateFormState((state) => state.copyWith(
+          name: state.name.copyWith(error: nameError),
+          dosageValue: state.dosageValue.copyWith(error: dosageError),
+          initialStock: state.initialStock.copyWith(error: stockError),
+          refillThreshold:
+              state.refillThreshold.copyWith(error: thresholdError),
+        ));
+
+    final hasErrors = nameError != null ||
+        dosageError != null ||
+        stockError != null ||
+        thresholdError != null;
+    if (hasErrors) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix all errors before submitting'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    if (_formState.timesOfDay.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add at least one time for medication'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final user = ref.read(authNotifierProvider).user;
+    if (user == null || user.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please login first'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    try {
+      final medication = _formState.toMedication(user.id);
+      if (medication.dosageValue <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please login first')),
+          const SnackBar(
+            content: Text('Dosage must be greater than 0'),
+            duration: Duration(seconds: 2),
+          ),
         );
         return;
       }
 
-      final medication = _formState.toMedication(user.id);
+      if (medication.initialStock <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Initial stock must be greater than 0'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return;
+      }
 
       if (_isEditing && _existingMedication != null) {
         final updatedMedication = _existingMedication!.copyWith(
@@ -315,7 +346,7 @@ class _AddEditMedicationScreenState
           timesOfDay: medication.timesOfDay,
           startDate: medication.startDate,
           endDate: medication.endDate,
-          currentStock: int.parse(_initialStockController.text),
+          currentStock: medication.currentStock,
           refillThreshold: medication.refillThreshold,
           colorTag: medication.colorTag,
           notes: medication.notes,
@@ -330,33 +361,72 @@ class _AddEditMedicationScreenState
 
         result.fold(
           (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update: ${failure.message}')),
+            SnackBar(
+              content: Text('Failed to update: ${failure.message}'),
+              duration: const Duration(seconds: 2),
+            ),
           ),
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Medication updated successfully')),
+              const SnackBar(
+                content: Text('Medication updated successfully'),
+                duration: Duration(seconds: 2),
+              ),
             );
-            context.pop();
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           },
         );
       } else {
+        // Add new medication
         final result = await ref
             .read(medicationListProvider.notifier)
             .addMedication(medication);
 
         result.fold(
           (failure) => ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add: ${failure.message}')),
+            SnackBar(
+              content: Text('Failed to add: ${failure.message}'),
+              duration: const Duration(seconds: 2),
+            ),
           ),
           (_) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Medication added successfully')),
+              const SnackBar(
+                content: Text('Medication added successfully'),
+                duration: Duration(seconds: 2),
+              ),
             );
-            context.pop();
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           },
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
+  }
+
+  void _syncControllersWithFormState() {
+    _nameController.text = _formState.name.value;
+    _dosageController.text = _formState.dosageValue.value;
+    _initialStockController.text = _formState.initialStock.value;
+    _refillThresholdController.text = _formState.refillThreshold.value;
+    _notesController.text = _formState.notes ?? '';
+  }
+
+  void _updateFormState(Function(MedicationFormState) update) {
+    setState(() {
+      _formState = update(_formState);
+      _syncControllersWithFormState(); // Sync controllers
+    });
   }
 
   void _deleteMedication() {
@@ -427,17 +497,16 @@ class _AddEditMedicationScreenState
               _buildImageUploadSection(),
 
               const SizedBox(height: 24),
-
-              // Basic Information
               FormSection(
                 title: 'Basic Information',
                 children: [
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Medication Name *',
-                      prefixIcon: Icon(Icons.medication_outlined),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.medication_outlined),
+                      border: const OutlineInputBorder(),
+                      errorText: _formState.name.error,
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -446,8 +515,10 @@ class _AddEditMedicationScreenState
                       return null;
                     },
                     onChanged: (value) {
+                      final error = MedicationName(value: value).validate();
                       _updateFormState((state) => state.copyWith(
-                            form: value ?? 'Tablet',
+                            name:
+                                state.name.copyWith(value: value, error: error),
                           ));
                     },
                   ),
@@ -458,20 +529,34 @@ class _AddEditMedicationScreenState
                         flex: 2,
                         child: TextFormField(
                           controller: _dosageController,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: InputDecoration(
                             labelText: 'Dosage *',
-                            prefixIcon: Icon(Icons.exposure),
-                            border: OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.exposure),
+                            border: const OutlineInputBorder(),
+                            errorText: _formState.dosageValue.error,
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Please enter dosage';
                             }
-                            if (double.tryParse(value) == null) {
+                            // Allow both comma and dot as decimal separator
+                            final cleanedValue = value.replaceAll(',', '.');
+                            if (double.tryParse(cleanedValue) == null) {
                               return 'Please enter a valid number';
                             }
                             return null;
+                          },
+                          onChanged: (value) {
+                            // Clean the value by replacing comma with dot
+                            final cleanedValue = value.replaceAll(',', '.');
+                            final error =
+                                DosageValue(value: cleanedValue).validate();
+                            _updateFormState((state) => state.copyWith(
+                                  dosageValue: state.dosageValue.copyWith(
+                                      value: cleanedValue, error: error),
+                                ));
                           },
                         ),
                       ),
@@ -574,11 +659,12 @@ class _AddEditMedicationScreenState
                   TextFormField(
                     controller: _initialStockController,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Initial Stock *',
-                      prefixIcon: Icon(Icons.inventory_2_outlined),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.inventory_2_outlined),
+                      border: const OutlineInputBorder(),
                       helperText: 'How many pills/units do you have now?',
+                      errorText: _formState.initialStock.error,
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -588,6 +674,13 @@ class _AddEditMedicationScreenState
                         return 'Please enter a valid number';
                       }
                       return null;
+                    },
+                    onChanged: (value) {
+                      final error = InitialStock(value: value).validate();
+                      _updateFormState((state) => state.copyWith(
+                            initialStock: state.initialStock
+                                .copyWith(value: value, error: error),
+                          ));
                     },
                   ),
                   const SizedBox(height: 16),
@@ -608,6 +701,13 @@ class _AddEditMedicationScreenState
                         return 'Please enter a valid number';
                       }
                       return null;
+                    },
+                    onChanged: (value) {
+                      final error = InitialStock(value: value).validate();
+                      _updateFormState((state) => state.copyWith(
+                            refillThreshold: state.refillThreshold
+                                .copyWith(value: value, error: error),
+                          ));
                     },
                   ),
                 ],

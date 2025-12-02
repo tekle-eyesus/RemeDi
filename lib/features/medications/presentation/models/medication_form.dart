@@ -38,8 +38,18 @@ class DosageValue {
 
   String? validate() {
     if (value.isEmpty) return 'Dosage value is required';
-    final numValue = double.tryParse(value);
-    if (numValue == null || numValue <= 0) return 'Enter a valid dosage';
+
+    final cleanedValue = value.replaceAll(',', '.');
+    final numValue = double.tryParse(cleanedValue);
+
+    if (numValue == null) {
+      return 'Enter a valid number (e.g., 10 or 10.5)';
+    }
+
+    if (numValue <= 0) {
+      return 'Dosage must be greater than 0';
+    }
+
     return null;
   }
 }
@@ -78,8 +88,17 @@ class InitialStock {
 
   String? validate() {
     if (value.isEmpty) return 'Initial stock is required';
+
     final numValue = int.tryParse(value);
-    if (numValue == null || numValue <= 0) return 'Enter a valid number';
+
+    if (numValue == null) {
+      return 'Enter a valid whole number (e.g., 30)';
+    }
+
+    if (numValue <= 0) {
+      return 'Stock must be greater than 0';
+    }
+
     return null;
   }
 }
@@ -99,8 +118,17 @@ class RefillThreshold {
 
   String? validate() {
     if (value.isEmpty) return 'Refill threshold is required';
+
     final numValue = int.tryParse(value);
-    if (numValue == null || numValue < 0) return 'Enter a valid number';
+
+    if (numValue == null) {
+      return 'Enter a valid whole number (e.g., 5)';
+    }
+
+    if (numValue < 0) {
+      return 'Threshold cannot be negative';
+    }
+
     return null;
   }
 }
@@ -202,11 +230,16 @@ class MedicationFormState {
   }
 
   Medication toMedication(String userId) {
+    // Safe parsing with defaults
+    final dosageDouble = double.tryParse(dosageValue.value) ?? 0.0;
+    final initialStockInt = int.tryParse(initialStock.value) ?? 30;
+    final refillThresholdInt = int.tryParse(refillThreshold.value) ?? 5;
+
     return Medication(
       id: '',
       userId: userId,
-      name: name.value,
-      dosageValue: double.parse(dosageValue.value),
+      name: name.value.trim(),
+      dosageValue: dosageDouble,
       dosageUnit: dosageUnit.value,
       form: form,
       frequency: Frequency(
@@ -216,12 +249,12 @@ class MedicationFormState {
       timesOfDay: timesOfDay,
       startDate: startDate,
       endDate: endDate,
-      initialStock: int.parse(initialStock.value),
-      currentStock: int.parse(initialStock.value),
+      initialStock: initialStockInt,
+      currentStock: initialStockInt,
       pillsPerPrescription: null,
-      refillThreshold: int.parse(refillThreshold.value),
+      refillThreshold: refillThresholdInt,
       colorTag: colorTag,
-      notes: notes,
+      notes: notes?.trim(),
       imageUrl: imageUrl,
       isActive: isActive,
       createdAt: DateTime.now(),
