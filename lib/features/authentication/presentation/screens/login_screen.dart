@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
+import 'package:medication_reminder/features/authentication/presentation/screens/signup_screen.dart';
 
 import '../providers/auth_provider.dart';
 import '../widgets/auth_form.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  final Function() ontoggleAuthMode;
+  const LoginScreen({super.key, required this.ontoggleAuthMode});
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -95,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: () => context.push('/signup'),
+                      onTap: widget.ontoggleAuthMode,
                       child: Text(
                         'Sign Up',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

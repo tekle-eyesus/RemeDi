@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:medication_reminder/features/authentication/data/auth_service.dart';
 import 'package:medication_reminder/features/authentication/presentation/widgets/custom_snackbar.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -39,7 +38,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             onPressed: () async {
-              await AuthService().signOut();
               CustomSnackBar.show(context, message: "Logged out successfully");
             },
             icon: const Icon(Icons.logout, color: Colors.white),

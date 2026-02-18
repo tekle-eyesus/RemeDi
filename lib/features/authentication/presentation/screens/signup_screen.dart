@@ -7,7 +7,8 @@ import '../providers/auth_provider.dart';
 import '../widgets/auth_form.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
-  const SignUpScreen({super.key});
+  final Function() ontoggleAuthMode;
+  const SignUpScreen({super.key, required this.ontoggleAuthMode});
 
   @override
   ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
@@ -94,6 +95,32 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                 onSubmit: _submit,
                 submitButtonText: 'Create Account',
                 showDisplayName: true,
+              ),
+              const SizedBox(height: 24),
+              // Login Link
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Already have an account?',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                    ),
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: widget.ontoggleAuthMode,
+                      child: Text(
+                        'Sign In',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppConstants.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

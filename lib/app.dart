@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
+import 'package:medication_reminder/features/authentication/presentation/screens/auth_screen.dart';
 import 'package:medication_reminder/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:medication_reminder/features/history/presentation/screens/history_calendar_screen.dart';
 import 'package:medication_reminder/features/medications/presentation/screens/add_edit_medication_screen.dart';
@@ -20,13 +21,17 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     routes: [
+      // GoRoute(
+      //   path: '/login',
+      //   builder: (context, state) => const LoginScreen(),
+      // ),
+      // GoRoute(
+      //   path: '/signup',
+      //   builder: (context, state) => const SignUpScreen(),
+      // ),
       GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
-      GoRoute(
-        path: '/signup',
-        builder: (context, state) => const SignUpScreen(),
+        path: "/auth",
+        builder: (context, state) => const AuthScreen(),
       ),
       GoRoute(
         path: '/',
@@ -58,7 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isSigningUp = state.uri.toString() == '/signup';
 
       if (!isLoggedIn && !isLoggingIn && !isSigningUp) {
-        return '/login';
+        return "/auth";
       } else if (isLoggedIn && (isLoggingIn || isSigningUp)) {
         return '/';
       }
