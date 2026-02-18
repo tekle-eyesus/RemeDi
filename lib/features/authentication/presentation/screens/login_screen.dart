@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
-import 'package:medication_reminder/features/authentication/presentation/screens/signup_screen.dart';
-
 import '../providers/auth_provider.dart';
 import '../widgets/auth_form.dart';
 
@@ -20,6 +18,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // --- LOGIC STARTS HERE (UNTOUCHED) ---
   @override
   void dispose() {
     _emailController.dispose();
@@ -35,12 +34,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
     }
   }
+  // --- LOGIC ENDS HERE ---
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
 
-    // Listen for auth success
     if (authState.isSuccess) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         context.go('/');
@@ -51,27 +50,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 60),
+              const SizedBox(height: 20),
+              // Logo
+              Center(
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: AppConstants.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.nightlight_round,
+                      color: Colors.white, size: 30),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // Header
               Text(
-                'Welcome Back',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: AppConstants.textColor,
+                'Login your account',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.black87,
                       fontWeight: FontWeight.bold,
                     ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Sign in to manage your medications',
+                'Log in to manage care',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       color: Colors.grey[600],
                     ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 40),
 
               // Login Form
               AuthForm(
@@ -84,33 +97,86 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 submitButtonText: 'Sign In',
               ),
 
+              const SizedBox(height: 30),
+
+              // Or divider
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('Or log in with',
+                        style: TextStyle(color: Colors.grey[500])),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                ],
+              ),
               const SizedBox(height: 24),
 
+              // Social Buttons
+              Row(
+                children: [
+                  Expanded(
+                      child: _buildSocialButton(
+                          label: 'Google',
+                          icon: Icons
+                              .g_mobiledata)), // Replace icon with asset if needed
+                  const SizedBox(width: 16),
+                  Expanded(
+                      child: _buildSocialButton(
+                          label: 'Apple', icon: Icons.apple)),
+                ],
+              ),
+
+              const SizedBox(height: 40),
+
               // Sign Up Link
-              Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Don't have an account?",
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: widget.ontoggleAuthMode,
-                      child: Text(
-                        'Sign Up',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppConstants.primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an account?",
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: widget.ontoggleAuthMode,
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        color: AppConstants.primaryColor,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialButton({required String label, required IconData icon}) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+      ),
+      child: InkWell(
+        onTap: () {}, // Dummy action
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 24),
+            const SizedBox(width: 8),
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          ],
         ),
       ),
     );
