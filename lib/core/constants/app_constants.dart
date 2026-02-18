@@ -4,7 +4,7 @@ class AppConstants {
   static const String appName = 'Medication Reminder';
 
   // Color palette (avoiding purple)
-  static const Color primaryColor = Color(0xFF2196F3); // Blue
+  static const Color primaryColor = Color(0xFF781E14); // Blue
   static const Color secondaryColor = Color(0xFF4CAF50); // Green
   static const Color accentColor = Color(0xFFFF9800); // Orange
   static const Color backgroundColor = Color(0xFFFAFAFA);
