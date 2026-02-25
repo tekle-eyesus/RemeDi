@@ -2,7 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:medication_reminder/features/authentication/presentation/widgets/custom_snackbar.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -14,6 +13,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircleAvatar(
             radius: 40,
@@ -38,6 +38,7 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             onPressed: () async {
+              await FirebaseAuth.instance.signOut();
               CustomSnackBar.show(context, message: "Logged out successfully");
             },
             icon: const Icon(Icons.logout, color: Colors.white),
