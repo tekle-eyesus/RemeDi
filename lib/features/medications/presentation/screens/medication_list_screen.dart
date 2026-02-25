@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
+import 'package:medication_reminder/features/medications/presentation/screens/add_edit_medication_screen.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -227,7 +228,11 @@ class _MedicationListScreenState extends ConsumerState<MedicationListScreen> {
                 message:
                     'Add your first medication to get started with tracking',
                 actionText: 'Add Medication',
-                onAction: () => context.push('/medications/add'),
+                onAction: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return const AddEditMedicationScreen();
+                  }));
+                },
               ),
             )
 
