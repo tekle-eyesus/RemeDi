@@ -79,13 +79,13 @@ class DoseLog {
   Color get statusColor {
     switch (status) {
       case DoseStatus.taken:
-        return AppTheme.secondary;
+        return AppTheme.darkTheme.secondaryHeaderColor;
       case DoseStatus.missed:
-        return AppTheme.error;
+        return AppTheme.lightTheme.canvasColor;
       case DoseStatus.skipped:
-        return AppTheme.accent;
+        return AppTheme.accentColor;
       case DoseStatus.upcoming:
-        return AppTheme.primary;
+        return AppTheme.primaryColor;
     }
   }
 

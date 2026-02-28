@@ -27,20 +27,21 @@ class EmptyState extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
+              color: AppTheme.lightTheme.primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
               size: 48,
-              color: AppTheme.primary,
+              color: AppTheme.primaryColor,
             ),
           ),
           const SizedBox(height: 24),
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: AppTheme.textPrimary,
+                  color:
+                      AppTheme.lightTheme.primaryTextTheme.headlineSmall?.color,
                   fontWeight: FontWeight.w600,
                 ),
             textAlign: TextAlign.center,
@@ -49,7 +50,7 @@ class EmptyState extends StatelessWidget {
           Text(
             message,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: AppTheme.lightTheme.primaryTextTheme.bodyMedium?.color,
                 ),
             textAlign: TextAlign.center,
           ),
@@ -58,7 +59,7 @@ class EmptyState extends StatelessWidget {
             ElevatedButton(
               onPressed: onAction,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primary,
+                backgroundColor: AppTheme.primaryColor,
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 32, vertical: 16),

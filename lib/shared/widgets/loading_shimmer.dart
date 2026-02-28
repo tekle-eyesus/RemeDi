@@ -46,7 +46,7 @@ class _StatShimmer extends StatelessWidget {
       height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }
@@ -59,7 +59,7 @@ class _ScheduleCardShimmer extends StatelessWidget {
       height: 120,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadius),
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }
