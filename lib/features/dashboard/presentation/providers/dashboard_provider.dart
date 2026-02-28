@@ -1,173 +1,191 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:fpdart/fpdart.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/features/history/data/datasources/history_remote_data_source.dart';
+import 'package:medication_reminder/features/history/domain/entities/dose_log.dart';
+import 'package:medication_reminder/features/medications/data/medication_repository.dart';
+import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
 
-// import '../../domain/entities/dashboard_entity.dart';
-// import '../../domain/repositories/dashboard_repository.dart';
+// ── Scheduled dose item ─────────────────────────────────────────────────────
 
-// class DashboardRepositoryImpl implements DashboardRepository {
-//   @override
-//   Future<Either<String, DashboardData>> getDashboardData() async {
-//     // Mock data for now
-//     await Future.delayed(const Duration(seconds: 1));
+class ScheduledDose {
+  final Medication medication;
+  final DateTime scheduledTime;
+  final DoseStatus status;
+  final String? doseLogId;
+  final String? notes;
+  final DateTime? takenTime;
 
-//     final mockSchedules = [
-//       MedicationSchedule(
-//         medicationId: '1',
-//         medicationName: 'Vitamin D',
-//         dosage: 1000,
-//         unit: 'IU',
-//         form: 'Tablet',
-//         time: const TimeOfDay(hour: 8, minute: 0),
-//         status: ScheduleStatus.upcoming,
-//         colorTag: '#2196F3',
-//         stockRemaining: 10,
-//       ),
-//       MedicationSchedule(
-//         medicationId: '2',
-//         medicationName: 'Blood Pressure',
-//         dosage: 5,
-//         unit: 'mg',
-//         form: 'Tablet',
-//         time: const TimeOfDay(hour: 12, minute: 0),
-//         status: ScheduleStatus.taken,
-//         colorTag: '#4CAF50',
-//         stockRemaining: 3,
-//       ),
-//       MedicationSchedule(
-//         medicationId: '3',
-//         medicationName: 'Pain Relief',
-//         dosage: 500,
-//         unit: 'mg',
-//         form: 'Tablet',
-//         time: const TimeOfDay(hour: 18, minute: 0),
-//         status: ScheduleStatus.upcoming,
-//         colorTag: '#FF9800',
-//         stockRemaining: 15,
-//       ),
-//     ];
+  const ScheduledDose({
+    required this.medication,
+    required this.scheduledTime,
+    required this.status,
+    this.doseLogId,
+    this.notes,
+    this.takenTime,
+  });
 
-//     final mockLowStock = [
-//       LowStockMedication(
-//         id: '2',
-//         name: 'Blood Pressure',
-//         currentStock: 3,
-//         refillThreshold: 5,
-//         colorTag: '#4CAF50',
-//       ),
-//     ];
+  bool get isUpcoming => status == DoseStatus.upcoming;
+  bool get isTaken => status == DoseStatus.taken;
+  bool get isSkipped => status == DoseStatus.skipped;
+  bool get isMissed => status == DoseStatus.missed;
 
-//     return Right(DashboardData(
-//       todaySchedules: mockSchedules,
-//       upcomingCount: mockSchedules
-//           .where((s) => s.status == ScheduleStatus.upcoming)
-//           .length,
-//       takenCount:
-//           mockSchedules.where((s) => s.status == ScheduleStatus.taken).length,
-//       missedCount:
-//           mockSchedules.where((s) => s.status == ScheduleStatus.missed).length,
-//       lowStockMedications: mockLowStock,
-//     ));
-//   }
+  String get formattedTime {
+    final h = scheduledTime.hour.toString().padLeft(2, '0');
+    final m = scheduledTime.minute.toString().padLeft(2, '0');
+    return '$h:$m';
+  }
+}
 
-//   @override
-//   Future<Either<String, void>> markDoseAsTaken(
-//       MedicationSchedule schedule) async {
-//     await Future.delayed(const Duration(milliseconds: 500));
-//     // In a real app, update the database here
-//     print('Marked dose as taken: ${schedule.medicationName}');
-//     return const Right(null);
-//   }
+// ── Dashboard state ──────────────────────────────────────────────────────────
 
-//   @override
-//   Future<Either<String, void>> markDoseAsSkipped(
-//       MedicationSchedule schedule) async {
-//     await Future.delayed(const Duration(milliseconds: 500));
-//     // In a real app, update the database here
-//     print('Marked dose as skipped: ${schedule.medicationName}');
-//     return const Right(null);
-//   }
-// }
+class DashboardState {
+  final bool isLoading;
+  final List<ScheduledDose> todayDoses;
+  final String? error;
 
-// // Dashboard Repository Provider
-// final dashboardRepositoryProvider = Provider<DashboardRepository>((ref) {
-//   return DashboardRepositoryImpl();
-// });
+  const DashboardState({
+    this.isLoading = false,
+    this.todayDoses = const [],
+    this.error,
+  });
 
-// // Dashboard State
-// class DashboardState {
-//   final bool isLoading;
-//   final DashboardData? data;
-//   final String? error;
+  int get takenCount => todayDoses.where((d) => d.isTaken).length;
+  int get missedCount => todayDoses.where((d) => d.isMissed).length;
+  int get skippedCount => todayDoses.where((d) => d.isSkipped).length;
+  int get upcomingCount => todayDoses.where((d) => d.isUpcoming).length;
+  int get totalDoses => todayDoses.length;
 
-//   const DashboardState({
-//     this.isLoading = false,
-//     this.data,
-//     this.error,
-//   });
+  double get adherenceRate =>
+      totalDoses == 0 ? 0.0 : (takenCount / totalDoses) * 100;
 
-//   bool get hasData => data != null;
-//   bool get hasError => error != null;
+  DashboardState copyWith({
+    bool? isLoading,
+    List<ScheduledDose>? todayDoses,
+    String? error,
+  }) {
+    return DashboardState(
+      isLoading: isLoading ?? this.isLoading,
+      todayDoses: todayDoses ?? this.todayDoses,
+      error: error ?? this.error,
+    );
+  }
+}
 
-//   DashboardState copyWith({
-//     bool? isLoading,
-//     DashboardData? data,
-//     String? error,
-//   }) {
-//     return DashboardState(
-//       isLoading: isLoading ?? this.isLoading,
-//       data: data ?? this.data,
-//       error: error ?? this.error,
-//     );
-//   }
-// }
+// ── Dashboard notifier ───────────────────────────────────────────────────────
 
-// // Dashboard Notifier
-// class DashboardNotifier extends StateNotifier<DashboardState> {
-//   final DashboardRepository _repository;
+class DashboardNotifier extends StateNotifier<DashboardState> {
+  final MedicationRepository _medRepo;
+  final HistoryRemoteDataSource _historySource;
 
-//   DashboardNotifier(this._repository) : super(const DashboardState());
+  DashboardNotifier(this._medRepo, this._historySource)
+      : super(const DashboardState());
 
-//   Future<void> loadDashboardData() async {
-//     state = state.copyWith(isLoading: true, error: null);
+  Future<void> loadToday() async {
+    state = const DashboardState(isLoading: true);
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final medications = await _medRepo.getMedications(uid).first;
+      final todayLogsResult = await _historySource.getTodayDoseLogs();
+      final todayLogs = todayLogsResult.fold(
+        (_) => <DoseLog>[],
+        (models) => List<DoseLog>.from(models),
+      );
 
-//     final result = await _repository.getDashboardData();
+      final doses = _computeTodaySchedule(medications, todayLogs);
+      state = DashboardState(todayDoses: doses);
+    } catch (e) {
+      state = DashboardState(error: e.toString());
+    }
+  }
 
-//     result.fold(
-//       (error) => state = state.copyWith(
-//         isLoading: false,
-//         error: error,
-//       ),
-//       (data) => state = state.copyWith(
-//         isLoading: false,
-//         data: data,
-//         error: null,
-//       ),
-//     );
-//   }
+  List<ScheduledDose> _computeTodaySchedule(
+      List<Medication> medications, List<DoseLog> todayLogs) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    // ISO weekday: Mon=1 … Sun=7 → abbreviated name
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final todayName = dayNames[now.weekday - 1];
 
-//   Future<void> markDoseAsTaken(MedicationSchedule schedule) async {
-//     final result = await _repository.markDoseAsTaken(schedule);
+    final List<ScheduledDose> doses = [];
 
-//     result.fold(
-//       (error) => state = state.copyWith(error: error),
-//       (_) => loadDashboardData(), // Reload data after marking
-//     );
-//   }
+    for (final med in medications) {
+      final startDay =
+          DateTime(med.startDate.year, med.startDate.month, med.startDate.day);
+      if (startDay.isAfter(today)) continue;
+      if (med.endDate != null) {
+        final endDay = DateTime(
+            med.endDate!.year, med.endDate!.month, med.endDate!.day);
+        if (endDay.isBefore(today)) continue;
+      }
+      if (med.frequencyType == FrequencyType.asNeeded) continue;
 
-//   Future<void> markDoseAsSkipped(MedicationSchedule schedule) async {
-//     final result = await _repository.markDoseAsSkipped(schedule);
+      bool takeToday = false;
+      switch (med.frequencyType) {
+        case FrequencyType.daily:
+          takeToday = true;
+          break;
+        case FrequencyType.specificDays:
+          takeToday = med.frequencyDays.contains(todayName);
+          break;
+        case FrequencyType.interval:
+          final daysSinceStart = today.difference(startDay).inDays;
+          takeToday = med.interval > 0 && daysSinceStart % med.interval == 0;
+          break;
+        case FrequencyType.asNeeded:
+          break;
+      }
+      if (!takeToday) continue;
 
-//     result.fold(
-//       (error) => state = state.copyWith(error: error),
-//       (_) => loadDashboardData(), // Reload data after marking
-//     );
-//   }
-// }
+      for (final timeStr in med.reminderTimes) {
+        final parts = timeStr.split(':');
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        final scheduledTime =
+            DateTime(today.year, today.month, today.day, hour, minute);
 
-// // Dashboard Provider
-// final dashboardProvider =
-//     StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
-//   final repository = ref.read(dashboardRepositoryProvider);
-//   return DashboardNotifier(repository);
-// });
+        final DoseLog? matchingLog = todayLogs.cast<DoseLog?>().firstWhere(
+              (log) =>
+                  log != null &&
+                  log.medicationId == med.id &&
+                  log.scheduledTime.hour == hour &&
+                  log.scheduledTime.minute == minute,
+              orElse: () => null,
+            );
+
+        DoseStatus status;
+        if (matchingLog != null) {
+          status = matchingLog.status;
+        } else if (scheduledTime.isBefore(now)) {
+          status = DoseStatus.missed;
+        } else {
+          status = DoseStatus.upcoming;
+        }
+
+        doses.add(ScheduledDose(
+          medication: med,
+          scheduledTime: scheduledTime,
+          status: status,
+          doseLogId: matchingLog?.id,
+          notes: matchingLog?.notes,
+          takenTime: matchingLog?.takenTime,
+        ));
+      }
+    }
+
+    doses.sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+    return doses;
+  }
+}
+
+// ── Providers ────────────────────────────────────────────────────────────────
+
+final _historySourceProvider = Provider<HistoryRemoteDataSource>(
+    (_) => HistoryRemoteDataSourceImpl());
+
+final dashboardProvider =
+    StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
+  return DashboardNotifier(
+    ref.read(medicationRepositoryProvider),
+    ref.read(_historySourceProvider),
+  );
+});

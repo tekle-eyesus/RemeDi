@@ -21,6 +21,9 @@ class Medication {
   final DateTime? endDate;
   final String? notes;
   final String? imageUrl;
+  // Overdose warning fields
+  final int? maxDailyDoses;
+  final int? minIntervalMinutes;
 
   Medication({
     required this.id,
@@ -40,6 +43,8 @@ class Medication {
     this.endDate,
     this.notes,
     this.imageUrl,
+    this.maxDailyDoses,
+    this.minIntervalMinutes,
   });
 
   // Convert to Map for Firebase
@@ -61,6 +66,8 @@ class Medication {
       'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
       'notes': notes,
       'imageUrl': imageUrl,
+      'maxDailyDoses': maxDailyDoses,
+      'minIntervalMinutes': minIntervalMinutes,
     };
   }
 
@@ -86,6 +93,8 @@ class Medication {
           : null,
       notes: map['notes'],
       imageUrl: map['imageUrl'],
+      maxDailyDoses: map['maxDailyDoses'] as int?,
+      minIntervalMinutes: map['minIntervalMinutes'] as int?,
     );
   }
 
@@ -93,6 +102,50 @@ class Medication {
     return FrequencyType.values.firstWhere(
       (e) => e.toString().split('.').last == value,
       orElse: () => FrequencyType.daily,
+    );
+  }
+
+  Medication copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    double? dosage,
+    String? unit,
+    String? type,
+    String? color,
+    int? currentStock,
+    int? refillThreshold,
+    FrequencyType? frequencyType,
+    List<String>? frequencyDays,
+    int? interval,
+    List<String>? reminderTimes,
+    DateTime? startDate,
+    DateTime? endDate,
+    String? notes,
+    String? imageUrl,
+    int? maxDailyDoses,
+    int? minIntervalMinutes,
+  }) {
+    return Medication(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      dosage: dosage ?? this.dosage,
+      unit: unit ?? this.unit,
+      type: type ?? this.type,
+      color: color ?? this.color,
+      currentStock: currentStock ?? this.currentStock,
+      refillThreshold: refillThreshold ?? this.refillThreshold,
+      frequencyType: frequencyType ?? this.frequencyType,
+      frequencyDays: frequencyDays ?? this.frequencyDays,
+      interval: interval ?? this.interval,
+      reminderTimes: reminderTimes ?? this.reminderTimes,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      notes: notes ?? this.notes,
+      imageUrl: imageUrl ?? this.imageUrl,
+      maxDailyDoses: maxDailyDoses ?? this.maxDailyDoses,
+      minIntervalMinutes: minIntervalMinutes ?? this.minIntervalMinutes,
     );
   }
 }

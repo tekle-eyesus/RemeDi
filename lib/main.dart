@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/core/services/notification_service.dart';
 import 'package:medication_reminder/shared/layout/auth.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
 import 'core/constants/app_constants.dart';
@@ -13,6 +14,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await dotenv.load(fileName: ".env");
+  await NotificationService().initialize();
+  await NotificationService().requestPermissions();
 
   runApp(const ProviderScope(child: MyApp()));
 }
