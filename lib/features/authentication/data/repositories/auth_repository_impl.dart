@@ -2,6 +2,7 @@ import 'package:fpdart/fpdart.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 import '../../../../core/errors/failures.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -49,5 +50,26 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
     return await remoteDataSource.sendPasswordResetEmail(email);
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> getUserProfile(String userId) async {
+    final result = await remoteDataSource.getUserProfile(userId);
+    return result.map((model) => model.toEntity());
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> updateUserProfile(UserEntity user) async {
+    final userModel = UserModel(
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      phoneNumber: user.phoneNumber,
+      photoUrl: user.photoUrl,
+      dateOfBirth: user.dateOfBirth,
+      bio: user.bio,
+    );
+    final result = await remoteDataSource.updateUserProfile(userModel);
+    return result.map((model) => model.toEntity());
   }
 }

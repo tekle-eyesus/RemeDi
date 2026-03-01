@@ -23,6 +23,8 @@ abstract class AuthRemoteDataSource {
   Future<Either<Failure, void>> signOut();
   Future<Either<Failure, void>> sendPasswordResetEmail(String email);
   Future<Either<Failure, void>> createUserProfile(UserModel user);
+  Future<Either<Failure, UserModel>> getUserProfile(String userId);
+  Future<Either<Failure, UserModel>> updateUserProfile(UserModel user);
 }
 
 class AuthRemoteDataSourceImpl extends FirestoreDataSource
@@ -154,6 +156,35 @@ class AuthRemoteDataSourceImpl extends FirestoreDataSource
       return const Right(null);
     } catch (e) {
       return Left(Failure('Failed to create user profile: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> getUserProfile(String userId) async {
+    try {
+      final doc = await usersCollection.doc(userId).get();
+      if (doc.exists) {
+        return Right(UserModel.fromFirestore(doc));
+      } else {
+        final fbUser = _firebaseAuth.currentUser;
+        if (fbUser != null) {
+          return Right(UserModel.fromFirebaseUser(fbUser));
+        }
+        return Left(Failure('User profile not found'));
+      }
+    } catch (e) {
+      return Left(Failure('Failed to get user profile: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserModel>> updateUserProfile(UserModel user) async {
+    try {
+      await usersCollection.doc(user.id).update(user.toUpdateMap());
+      final doc = await usersCollection.doc(user.id).get();
+      return Right(UserModel.fromFirestore(doc));
+    } catch (e) {
+      return Left(Failure('Failed to update user profile: ${e.toString()}'));
     }
   }
 
