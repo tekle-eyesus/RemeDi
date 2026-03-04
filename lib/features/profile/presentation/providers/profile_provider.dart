@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:medication_reminder/features/authentication/data/repositories/auth_repository_impl.dart';
 import 'package:medication_reminder/features/authentication/domain/entities/user_entity.dart';
 import 'package:medication_reminder/features/authentication/presentation/providers/auth_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
