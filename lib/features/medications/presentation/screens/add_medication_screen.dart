@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:medication_reminder/core/services/cloudinary_service.dart';
 import 'package:medication_reminder/features/authentication/presentation/providers/auth_provider.dart';
+import 'package:medication_reminder/features/authentication/presentation/widgets/custom_snackbar.dart';
 import 'package:medication_reminder/features/medications/data/medication_repository.dart';
 import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
@@ -68,8 +70,7 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
       _notesController.text = med.notes ?? '';
       _selectedUnit = med.unit;
       _selectedType = med.type;
-      _selectedColor =
-          Color(int.parse(med.color.replaceAll('#', '0xff')));
+      _selectedColor = Color(int.parse(med.color.replaceAll('#', '0xff')));
       _frequencyType = med.frequencyType;
       _selectedDays.addAll(med.frequencyDays);
       _reminderTimes.addAll(med.reminderTimes);
@@ -161,7 +162,8 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
 
     try {
       final isEditing = widget.medication != null;
-      final user = ref.read(authNotifierProvider).user;
+      // final user = ref.read(authNotifierProvider).user;
+      final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("User not logged in");
 
       // 1. Upload Image if a new local image was selected
@@ -203,19 +205,16 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
           maxDailyDoses: maxDaily,
           minIntervalMinutes: minInterval,
         );
-        await ref
-            .read(medicationRepositoryProvider)
-            .updateMedication(updated);
+        await ref.read(medicationRepositoryProvider).updateMedication(updated);
         if (mounted) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Medication updated")));
+          CustomSnackBar.show(context, message: "Medication updated");
         }
       } else {
         // 2b. Add new medication
         final newMed = Medication(
           id: '',
-          userId: user.id,
+          userId: user.uid,
           name: _nameController.text.trim(),
           dosage: double.parse(_dosageController.text),
           unit: _selectedUnit,
@@ -239,14 +238,12 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
         await ref.read(medicationRepositoryProvider).addMedication(newMed);
         if (mounted) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Medication added")));
+          CustomSnackBar.show(context, message: "Medication added");
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Error: $e")));
+        CustomSnackBar.show(context, message: "Error: $e");
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -257,8 +254,8 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.medication != null;
     return Scaffold(
-      appBar: AppBar(
-          title: Text(isEditing ? "Edit Medication" : "Add Medication")),
+      appBar:
+          AppBar(title: Text(isEditing ? "Edit Medication" : "Add Medication")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -612,7 +609,8 @@ class _AddMedicationScreenState extends ConsumerState<AddMedicationScreen> {
                             Text("Saving..."),
                           ],
                         )
-                      : Text(isEditing ? "Update Medication" : "Save Medication",
+                      : Text(
+                          isEditing ? "Update Medication" : "Save Medication",
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
