@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:medication_reminder/features/medications/data/medication_repository.dart';
 import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
 import 'package:medication_reminder/features/medications/presentation/screens/add_medication_screen.dart';
+import 'package:medication_reminder/features/medications/presentation/screens/medication_detail_screen.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
 
 class MedicationListScreen extends ConsumerWidget {
@@ -87,6 +88,14 @@ class _MedicationCard extends ConsumerWidget {
       shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MedicationDetailScreen(medication: med),
+            ),
+          );
+        },
         leading: CircleAvatar(
           backgroundColor: color,
           child: const FaIcon(FontAwesomeIcons.pills,

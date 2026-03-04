@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:medication_reminder/core/constants/app_constants.dart';
+import 'package:medication_reminder/core/services/cloudinary_service.dart';
 import 'package:medication_reminder/features/authentication/domain/entities/user_entity.dart';
 import 'package:medication_reminder/features/authentication/presentation/widgets/custom_snackbar.dart';
 import 'package:medication_reminder/features/profile/presentation/providers/profile_provider.dart';
@@ -21,6 +24,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _bioController;
   DateTime? _selectedDateOfBirth;
+
+  // Profile picture state
+  File? _selectedImage;
+  bool _isUploadingImage = false;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -41,6 +50,53 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take a photo'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickFromSource(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from gallery'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickFromSource(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickFromSource(ImageSource source) async {
+    try {
+      final XFile? pickedFile =
+          await _picker.pickImage(source: source, imageQuality: 80);
+      if (pickedFile != null) {
+        setState(() => _selectedImage = File(pickedFile.path));
+      }
+    } catch (e) {
+      if (mounted) {
+        CustomSnackBar.show(context,
+            message: 'Could not pick image: $e', isError: true);
+      }
+    }
+  }
+
   Future<void> _pickDateOfBirth() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -59,6 +115,32 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    String? photoUrl = widget.user.photoUrl;
+
+    // Upload new profile picture if selected
+    if (_selectedImage != null) {
+      setState(() => _isUploadingImage = true);
+      try {
+        photoUrl = await _cloudinaryService.uploadImage(_selectedImage!);
+        if (photoUrl == null) {
+          if (mounted) {
+            CustomSnackBar.show(context,
+                message: 'Failed to upload profile picture', isError: true);
+          }
+          setState(() => _isUploadingImage = false);
+          return;
+        }
+      } catch (e) {
+        if (mounted) {
+          CustomSnackBar.show(context,
+              message: 'Image upload error: $e', isError: true);
+        }
+        setState(() => _isUploadingImage = false);
+        return;
+      }
+      setState(() => _isUploadingImage = false);
+    }
+
     final updatedUser = widget.user.copyWith(
       displayName: _displayNameController.text.trim(),
       phoneNumber: _phoneController.text.trim().isEmpty
@@ -68,6 +150,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           ? null
           : _bioController.text.trim(),
       dateOfBirth: _selectedDateOfBirth,
+      photoUrl: photoUrl,
     );
 
     await ref
@@ -90,7 +173,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       }
     });
 
-    final isLoading =
+    final isLoading = _isUploadingImage ||
         ref.watch(profileNotifierProvider.select((s) => s.isLoading));
 
     return Scaffold(
@@ -110,6 +193,58 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Profile picture picker
+              Center(
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 52,
+                      backgroundColor:
+                          AppConstants.primaryColor.withValues(alpha: 0.15),
+                      backgroundImage: _selectedImage != null
+                          ? FileImage(_selectedImage!)
+                          : (widget.user.photoUrl != null
+                              ? NetworkImage(widget.user.photoUrl!)
+                                  as ImageProvider
+                              : null),
+                      child: (_selectedImage == null &&
+                              widget.user.photoUrl == null)
+                          ? Icon(
+                              Icons.person,
+                              color: AppConstants.primaryColor,
+                              size: 56,
+                            )
+                          : null,
+                    ),
+                    GestureDetector(
+                      onTap: isLoading ? null : _pickImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppConstants.primaryColor,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: Text(
+                  'Tap to change profile picture',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               _buildLabel('Full Name'),
               const SizedBox(height: 8),
               TextFormField(

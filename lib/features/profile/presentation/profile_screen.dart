@@ -45,6 +45,29 @@ class ProfileScreen extends ConsumerWidget {
                                 )
                               : null,
                         ),
+                        GestureDetector(
+                          onTap: user == null
+                              ? null
+                              : () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          EditProfileScreen(user: user),
+                                    ),
+                                  );
+                                },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppConstants.primaryColor,
+                              shape: BoxShape.circle,
+                              border:
+                                  Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: const Icon(Icons.camera_alt,
+                                color: Colors.white, size: 14),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
