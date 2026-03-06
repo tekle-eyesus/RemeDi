@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:medication_reminder/features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'package:medication_reminder/features/dashboard/presentation/widgets/dose_tile.dart';
 import 'package:medication_reminder/features/history/data/datasources/history_remote_data_source.dart';
 import 'package:medication_reminder/features/history/data/models/dose_log_model.dart';
 import 'package:medication_reminder/features/history/domain/entities/dose_log.dart';
@@ -10,8 +11,6 @@ import 'package:medication_reminder/features/medications/data/medication_reposit
 import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
 import 'package:medication_reminder/shared/styles/theme.dart';
 import 'package:uuid/uuid.dart';
-
-// ── Helper ────────────────────────────────────────────────────────────────────
 
 DoseLogModel _toModel(DoseLog log) => DoseLogModel(
       id: log.id,
@@ -163,8 +162,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             children: [
               Text(
                 dose.medication.name,
-                style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Text(
                 '${dose.medication.dosage}${dose.medication.unit} · ${dose.formattedTime}',
@@ -281,16 +280,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 style: const TextStyle(fontSize: 13, color: Colors.grey)),
             Text(
               DateFormat('EEEE, MMM d').format(today),
-              style: const TextStyle(
-                  fontSize: 17, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () =>
-                ref.read(dashboardProvider.notifier).loadToday(),
+            onPressed: () => ref.read(dashboardProvider.notifier).loadToday(),
           ),
         ],
       ),
@@ -316,16 +313,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       if (_lowStockMeds(state).isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            child: _LowStockBanner(
-                                meds: _lowStockMeds(state)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: _LowStockBanner(meds: _lowStockMeds(state)),
                           ),
                         ),
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding:
-                              const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                           child: Text(
                             "Today's Schedule",
                             style: Theme.of(context)
@@ -342,8 +336,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     FaIcon(FontAwesomeIcons.calendarCheck,
-                                        size: 48,
-                                        color: Colors.grey.shade300),
+                                        size: 48, color: Colors.grey.shade300),
                                     const SizedBox(height: 12),
                                     Text(
                                       'No doses scheduled for today',
@@ -361,18 +354,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 16, vertical: 4),
-                                    child: _DoseTile(
+                                    child: DoseTile(
                                       dose: dose,
-                                      onTap: () =>
-                                          _showDoseActions(dose),
+                                      onTap: () => _showDoseActions(dose),
                                     ),
                                   );
                                 },
                                 childCount: state.todayDoses.length,
                               ),
                             ),
-                      const SliverToBoxAdapter(
-                          child: SizedBox(height: 24)),
+                      const SliverToBoxAdapter(child: SizedBox(height: 24)),
                     ],
                   ),
                 ),
@@ -451,8 +442,7 @@ class _AdherenceCard extends StatelessWidget {
                 value: pct / 100,
                 minHeight: 8,
                 backgroundColor: Colors.white24,
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
           ],
@@ -475,12 +465,9 @@ class _StatChip extends StatelessWidget {
       children: [
         Text('$count',
             style: TextStyle(
-                color: color,
-                fontSize: 18,
-                fontWeight: FontWeight.bold)),
+                color: color, fontSize: 18, fontWeight: FontWeight.bold)),
         Text(label,
-            style:
-                const TextStyle(color: Colors.white60, fontSize: 10)),
+            style: const TextStyle(color: Colors.white60, fontSize: 10)),
       ],
     );
   }
@@ -507,64 +494,10 @@ class _LowStockBanner extends StatelessWidget {
           Expanded(
             child: Text(
               'Low stock: ${meds.map((m) => m.name).join(', ')}',
-              style: TextStyle(
-                  color: Colors.orange.shade800, fontSize: 13),
+              style: TextStyle(color: Colors.orange.shade800, fontSize: 13),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _DoseTile extends StatelessWidget {
-  final ScheduledDose dose;
-  final VoidCallback onTap;
-  const _DoseTile({required this.dose, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final med = dose.medication;
-    final color = Color(int.parse(med.color.replaceAll('#', '0xff')));
-
-    Color statusColor;
-    IconData statusIcon;
-    switch (dose.status) {
-      case DoseStatus.taken:
-        statusColor = Colors.green;
-        statusIcon = Icons.check_circle;
-        break;
-      case DoseStatus.missed:
-        statusColor = Colors.red;
-        statusIcon = Icons.warning_rounded;
-        break;
-      case DoseStatus.skipped:
-        statusColor = Colors.orange;
-        statusIcon = Icons.do_not_disturb_on;
-        break;
-      case DoseStatus.upcoming:
-        statusColor = Colors.blue;
-        statusIcon = Icons.schedule;
-        break;
-    }
-
-    return Card(
-      elevation: 1,
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: color.withOpacity(0.15),
-          child:
-              FaIcon(FontAwesomeIcons.pills, color: color, size: 18),
-        ),
-        title: Text(med.name,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(
-            '${med.dosage}${med.unit} · ${dose.formattedTime}'
-            '${dose.notes != null ? ' · ${dose.notes}' : ''}'),
-        trailing: Icon(statusIcon, color: statusColor),
       ),
     );
   }
@@ -587,8 +520,7 @@ class _ActionButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: color,
         side: BorderSide(color: color.withOpacity(0.5)),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       onPressed: onTap,
       icon: Icon(icon, size: 16),
@@ -614,8 +546,7 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            ElevatedButton(
-                onPressed: onRetry, child: const Text('Retry')),
+            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ),
       ),
