@@ -71,27 +71,25 @@ class _TabScreenState extends State<TabScreen> {
               icon: FaIcon(FontAwesomeIcons.house, size: 24),
               activeIcon: FaIcon(FontAwesomeIcons.house, size: 24),
               label: 'Home',
+              tooltip: 'Home',
             ),
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.history_outlined,
-                size: 24,
-              ),
-              activeIcon: Icon(
-                Icons.history_rounded,
-                size: 24,
-              ),
+              icon: FaIcon(FontAwesomeIcons.history, size: 24),
+              activeIcon: FaIcon(FontAwesomeIcons.history, size: 24),
               label: 'history',
+              tooltip: 'History',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(FontAwesomeIcons.kitMedical, size: 24),
               activeIcon: FaIcon(FontAwesomeIcons.kitMedical, size: 24),
               label: 'Medications',
+              tooltip: 'Medications',
             ),
             BottomNavigationBarItem(
               icon: FaIcon(FontAwesomeIcons.user, size: 24),
               activeIcon: FaIcon(FontAwesomeIcons.solidUser, size: 24),
               label: 'Profile',
+              tooltip: 'Profile',
             ),
           ],
         ),
