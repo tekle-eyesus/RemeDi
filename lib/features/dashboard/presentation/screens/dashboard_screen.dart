@@ -3,13 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:medication_reminder/features/dashboard/presentation/providers/dashboard_provider.dart';
+import 'package:medication_reminder/features/dashboard/presentation/widgets/action_btn.dart';
+import 'package:medication_reminder/features/dashboard/presentation/widgets/adherence_card.dart';
 import 'package:medication_reminder/features/dashboard/presentation/widgets/dose_tile.dart';
+import 'package:medication_reminder/features/dashboard/presentation/widgets/error_view.dart';
+import 'package:medication_reminder/features/dashboard/presentation/widgets/low_stock_banner.dart';
 import 'package:medication_reminder/features/history/data/datasources/history_remote_data_source.dart';
 import 'package:medication_reminder/features/history/data/models/dose_log_model.dart';
 import 'package:medication_reminder/features/history/domain/entities/dose_log.dart';
 import 'package:medication_reminder/features/medications/data/medication_repository.dart';
 import 'package:medication_reminder/features/medications/domain/entities/medication.dart';
-import 'package:medication_reminder/shared/styles/theme.dart';
 import 'package:uuid/uuid.dart';
 
 DoseLogModel _toModel(DoseLog log) => DoseLogModel(
@@ -196,7 +199,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: _ActionButton(
+                    child: ActionButton(
                       label: 'Take',
                       icon: Icons.check_circle_outline,
                       color: Colors.green,
@@ -218,7 +221,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _ActionButton(
+                    child: ActionButton(
                       label: 'Skip',
                       icon: Icons.do_not_disturb_on_outlined,
                       color: Colors.orange,
@@ -233,7 +236,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _ActionButton(
+                    child: ActionButton(
                       label: 'Undo',
                       icon: Icons.undo,
                       color: Colors.grey,
@@ -308,7 +311,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.error != null
-              ? _ErrorView(
+              ? ErrorView(
                   message: state.error!,
                   onRetry: () =>
                       ref.read(dashboardProvider.notifier).loadToday(),
@@ -321,14 +324,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
-                          child: _AdherenceCard(state: state),
+                          child: AdherenceCard(state: state),
                         ),
                       ),
                       if (_lowStockMeds(state).isNotEmpty)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: _LowStockBanner(meds: _lowStockMeds(state)),
+                            child: LowStockBanner(meds: _lowStockMeds(state)),
                           ),
                         ),
                       SliverToBoxAdapter(
@@ -399,171 +402,5 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
-  }
-}
-
-// ── Sub-widgets ───────────────────────────────────────────────────────────────
-
-class _AdherenceCard extends StatelessWidget {
-  final DashboardState state;
-  const _AdherenceCard({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final pct = state.adherenceRate;
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: AppTheme.primaryColor,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Today's Adherence",
-                style: TextStyle(color: Colors.white70, fontSize: 13)),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${pct.toStringAsFixed(0)}%',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                _StatChip(
-                    label: 'Taken',
-                    count: state.takenCount,
-                    color: Colors.green.shade300),
-                const SizedBox(width: 6),
-                _StatChip(
-                    label: 'Missed',
-                    count: state.missedCount,
-                    color: Colors.red.shade300),
-                const SizedBox(width: 6),
-                _StatChip(
-                    label: 'Due',
-                    count: state.upcomingCount,
-                    color: Colors.blue.shade200),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: pct / 100,
-                minHeight: 8,
-                backgroundColor: Colors.white24,
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final int count;
-  final Color color;
-  const _StatChip(
-      {required this.label, required this.count, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('$count',
-            style: TextStyle(
-                color: color, fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(label,
-            style: const TextStyle(color: Colors.white60, fontSize: 10)),
-      ],
-    );
-  }
-}
-
-class _LowStockBanner extends StatelessWidget {
-  final List<Medication> meds;
-  const _LowStockBanner({required this.meds});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.orange),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Low stock: ${meds.map((m) => m.name).join(', ')}',
-              style: TextStyle(color: Colors.orange.shade800, fontSize: 13),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  const _ActionButton(
-      {required this.label,
-      required this.icon,
-      required this.color,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: color,
-        side: BorderSide(color: color.withOpacity(0.5)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label, style: const TextStyle(fontSize: 13)),
-    );
-  }
-}
-
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
-      ),
-    );
   }
 }
