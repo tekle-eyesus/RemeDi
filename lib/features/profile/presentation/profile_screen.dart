@@ -7,6 +7,7 @@ import 'package:medication_reminder/features/authentication/presentation/provide
 import 'package:medication_reminder/features/authentication/presentation/widgets/custom_snackbar.dart';
 import 'package:medication_reminder/features/profile/presentation/providers/profile_provider.dart';
 import 'package:medication_reminder/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:medication_reminder/shared/providers/theme_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -79,7 +80,6 @@ class ProfileScreen extends ConsumerWidget {
                       style: GoogleFonts.poppins(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -88,7 +88,7 @@ class ProfileScreen extends ConsumerWidget {
                       user?.email ?? '',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -129,6 +129,11 @@ class ProfileScreen extends ConsumerWidget {
                     ),
 
                     const SizedBox(height: 32),
+
+                    // Dark / Light mode toggle
+                    const _DarkModeToggle(),
+
+                    const SizedBox(height: 16),
                     const Divider(),
                     const SizedBox(height: 16),
 
@@ -209,6 +214,42 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+class _DarkModeToggle extends ConsumerWidget {
+  const _DarkModeToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeNotifier = ref.read(themeNotifierProvider.notifier);
+    final isDark = ref.watch(themeNotifierProvider) == ThemeMode.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: SwitchListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        secondary: Icon(
+          isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
+          color: AppConstants.primaryColor,
+        ),
+        title: Text(
+          'Dark Mode',
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        value: isDark,
+        activeColor: AppConstants.primaryColor,
+        onChanged: (_) => themeNotifier.toggleTheme(),
+      ),
+    );
+  }
+}
+
 class _ProfileInfoCard extends StatelessWidget {
   final List<_ProfileInfoItem> items;
 
@@ -216,11 +257,12 @@ class _ProfileInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -240,7 +282,7 @@ class _ProfileInfoCard extends StatelessWidget {
                       Divider(
                           height: 1,
                           indent: 56,
-                          color: Colors.grey.shade100),
+                          color: Theme.of(context).dividerColor),
                   ],
                 ))
             .toList(),
@@ -262,6 +304,7 @@ class _ProfileInfoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -277,7 +320,7 @@ class _ProfileInfoItem extends StatelessWidget {
                   label,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -286,7 +329,7 @@ class _ProfileInfoItem extends StatelessWidget {
                   value,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
-                    color: Colors.black87,
+                    color: textTheme.bodyMedium?.color,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
